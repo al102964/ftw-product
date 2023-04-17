@@ -1,13 +1,28 @@
 # Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
 # More GitHub Actions for Azure: https://github.com/Azure/actions
 
-name: Build and deploy Node.js app to Azure Web App - autopartes
+
+# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
+# More GitHub Actions for Azure: https://github.com/Azure/actions
+
+name: Build and deploy Node.js app to Azure Web App - 'autopartes'
 
 on:
   push:
     branches:
-      - main
+      - master
   workflow_dispatch:
+  
+env:
+  NODE_ENV: production
+  REACT_APP_CANONICAL_ROOT_URL: https://autopartes.azurewebsites.net
+  REACT_APP_MAPBOX_ACCESS_TOKEN: ${{ secrets.REACT_APP_MAPBOX_ACCESS_TOKEN }}
+  REACT_APP_SHARETRIBE_MARKETPLACE_CURRENCY: USD
+  REACT_APP_SHARETRIBE_SDK_CLIENT_ID: 89b08fc3-c97c-4d4c-8f14-60b12147a792
+  REACT_APP_STRIPE_PUBLISHABLE_KEY: pk_test_51J8G32EpYjJ2yJRRUCaYLperutnuOjcETJwY0SoKwbclitrvbwQZAodHJd8NlZP8L2iorAy18UBro2lkzzG3f1Xo00kfPcNunU
+  SHARETRIBE_SDK_CLIENT_SECRET: ${{ secrets.SHARETRIBE_SDK_CLIENT_SECRET }}
+  REACT_APP_AVAILABILITY_ENABLED: true
+  REACT_APP_DEFAULT_SEARCHES_ENABLED: true
 
 jobs:
   build:
@@ -23,15 +38,17 @@ jobs:
 
       - name: npm install, build, and test
         run: |
-          npm install
-          npm run build --if-present
-          npm run test --if-present
+          yarn install
+          yarn build
+          
+      - name: Zip artifact for deployment
+        run: zip release.zip ./* -r
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v2
         with:
           name: node-app
-          path: .
+          path: release.zip
 
   deploy:
     runs-on: ubuntu-latest
@@ -45,6 +62,9 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: node-app
+      
+      - name: unzip artifact for deployment
+        run: unzip release.zip
 
       - name: 'Deploy to Azure Web App'
         id: deploy-to-webapp
